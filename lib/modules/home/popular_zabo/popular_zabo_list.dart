@@ -1,36 +1,66 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class PopularZabo extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class ZaboListInfo {
+  final String title;
+  final String team;
+  final List chipLabels;
+
+  const ZaboListInfo(
+      {required this.title, required this.team, required this.chipLabels});
+
+  factory ZaboListInfo.fromJson(Map<String, dynamic> json) {
+    return ZaboListInfo(
+        title: json['title'],
+        team: json['name'],
+        chipLabels: json['chipLabels']);
+  }
+}
+
+class PopularZabo extends StatefulWidget {
   const PopularZabo({Key? key}) : super(key: key);
 
   @override
+  State<PopularZabo> createState() => _PopularZaboState();
+}
+
+class _PopularZaboState extends State<PopularZabo> {
+  Future<List<ZaboListInfo>> getZaboListInfo() async {
+    final String response = await rootBundle.loadString('zabo_list_data.json');
+    final data = json.decode(response).cast<Map<String, dynamic>>();
+
+    return data
+        .map<ZaboListInfo>((json) => ZaboListInfo.fromJson(json))
+        .toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const List<String> names = <String>[
-      '스팍스 2019 가을 리크루팅',
-      '학부 총학생회 신입위원 모집',
-      'DITO 참가팀 모집'
-    ];
-
-    const List<List<String>> chipLabels = <List<String>>[
-      <String>['# 동아리', '# 모집'],
-      <String>['# 공지', '# 모집', '# 오픈톡방'],
-      <String>['# 행사', '# 교육', '# 공지', '# 모집'],
-    ];
-
     return Container(
       margin: EdgeInsets.all(16.0),
       color: Colors.grey,
       child: Column(
         children: [
           Text('인기 있는 자보'),
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: names.length,
-            itemBuilder: (BuildContext context, int index) {
-              return ZaboListTile(
-                name: names[index],
-                chipLabels: chipLabels[index],
-              );
+          FutureBuilder<List<ZaboListInfo>>(
+            future: getZaboListInfo(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                List<ZaboListInfo> _items = snapshot.data!;
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _items.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ZaboListTile(zabo: _items[index]);
+                  },
+                );
+              } else if (snapshot.hasError) {
+                return Text('에러남');
+              } else {
+                return Text('로딩중');
+              }
             },
           )
         ],
@@ -42,12 +72,10 @@ class PopularZabo extends StatelessWidget {
 class ZaboListTile extends StatefulWidget {
   const ZaboListTile({
     Key? key,
-    this.name = "",
-    required this.chipLabels,
+    required this.zabo,
   }) : super(key: key);
 
-  final String name;
-  final List chipLabels;
+  final ZaboListInfo zabo;
 
   @override
   State<ZaboListTile> createState() => _ZaboListTileState();
@@ -85,14 +113,14 @@ class _ZaboListTileState extends State<ZaboListTile> {
                           spacing: 6.0,
                           runSpacing: 6.0,
                           children: List.generate(
-                            widget.chipLabels.length,
+                            widget.zabo.chipLabels.length,
                             (index) => ZaboTypeChip(
-                              label: widget.chipLabels[index],
+                              label: widget.zabo.chipLabels[index],
                             ),
                           )),
                     ),
                     Text(
-                      widget.name,
+                      widget.zabo.title,
                       style: TextStyle(
                         fontSize: 14.0,
                         fontWeight: FontWeight.bold,
@@ -109,7 +137,7 @@ class _ZaboListTileState extends State<ZaboListTile> {
                           width: 10.0,
                         ),
                         Text(
-                          'Zabo Team',
+                          widget.zabo.team,
                           style: TextStyle(
                             fontSize: 12.0,
                           ),
