@@ -28,7 +28,8 @@ class PopularZabo extends StatefulWidget {
 
 class _PopularZaboState extends State<PopularZabo> {
   Future<List<ZaboListInfo>> getZaboListInfo() async {
-    final String response = await rootBundle.loadString('zabo_list_data.json');
+    final String response =
+        await rootBundle.loadString('assets/zabo_list_data.json');
     final data = json.decode(response).cast<Map<String, dynamic>>();
 
     return data
@@ -95,7 +96,7 @@ class _ZaboListTileState extends State<ZaboListTile> {
         child: Row(
           children: [
             Image(
-              image: AssetImage('poster_example.png'),
+              image: AssetImage('assets/poster_example.png'),
             ),
             SizedBox(
               width: 15.0,
@@ -129,7 +130,7 @@ class _ZaboListTileState extends State<ZaboListTile> {
                     Row(
                       children: [
                         Image(
-                          image: AssetImage('zabo_team_icon.png'),
+                          image: AssetImage('assets/zabo_team_icon.png'),
                           width: 20.0,
                           height: 20.0,
                         ),
